@@ -20,6 +20,7 @@ import jsprit.core.problem.vehicle.VehicleImpl;
 import jsprit.core.problem.vehicle.VehicleImpl.Builder;
 import jsprit.core.problem.vehicle.VehicleType;
 import jsprit.core.problem.vehicle.VehicleTypeImpl;
+import jsprit.core.problem.vehicle.VehicleTypeImpl.VehicleCostParams;
 
 public class WorkRepository {
 	private Map<String, Work> workItems = new HashMap<String, WorkRepository.Work>();
@@ -50,6 +51,7 @@ public class WorkRepository {
 			 */
 			final int WEIGHT_INDEX = 0;
 			VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(WEIGHT_INDEX, 2);
+			vehicleTypeBuilder.setCostPerTime(1);
 			VehicleType vehicleType = vehicleTypeBuilder.build();
 			
 			/*
