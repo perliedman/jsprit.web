@@ -12,9 +12,18 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.sun.org.apache.xml.internal.serialize.OutputFormat;
+import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
+import com.sun.org.apache.xml.internal.serializer.Method;
 
 import jsprit.core.problem.VehicleRoutingProblem;
 import jsprit.core.problem.io.VrpXMLWriter;
@@ -55,6 +64,26 @@ public class SolutionServlet extends HttpServlet {
 			}
 		} else {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			XMLSerializer serializer = new XMLSerializer(response.getWriter(), new OutputFormat(Method.XML, OutputFormat.Defaults.Encoding, true));
+			try {
+				serializer.serialize(createError("NOT_FOUND", "Specified endpoint does not exist."));
+			} catch (ParserConfigurationException e) {
+				throw new ServletException(e);
+			}
 		}		
     }
+
+	private Element createError(String codeStr, String messageStr) throws ParserConfigurationException {
+		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		Document doc = documentBuilder.newDocument();
+		Element error = doc.createElement("error");
+		Element code = doc.createElement("code");
+		code.setTextContent(codeStr);
+		Element message = doc.createElement("message");		
+		message.setTextContent(messageStr);
+		error.appendChild(code);
+		error.appendChild(message);
+		doc.appendChild(error);
+		return doc.getDocumentElement();
+	}
 }
