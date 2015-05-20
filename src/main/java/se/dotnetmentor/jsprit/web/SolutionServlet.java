@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -35,12 +37,15 @@ public class SolutionServlet extends HttpServlet {
 	private Log log = LogFactory.getLog(SolutionServlet.class);
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		response.setContentType("text/xml;charset=utf-8");
+		response.setContentType("application/xml;charset=utf-8");
+		response.setHeader("Access-Control-Allow-Origin", "*");
 
+		Pattern getPattern = Pattern.compile("/([0-9a-zA-Z\\-]+)");
 		String pi = request.getPathInfo();
+		Matcher matcher = getPattern.matcher(pi);
 		
-		if (pi.equals("/solution")) {
-			String sessionId = request.getSession().getId();
+		if (matcher.matches()) {
+			String sessionId = matcher.group(1).toLowerCase();
 			VehicleRoutingProblem problem = workRepository.getProblem(sessionId);
 			Collection<VehicleRoutingProblemSolution> solutions = workRepository.getSolutions(sessionId);
 			

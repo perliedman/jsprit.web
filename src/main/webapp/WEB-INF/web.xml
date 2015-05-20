@@ -5,11 +5,11 @@
 <web-app>
   <display-name>jsprit.web</display-name>
   <servlet>
-    <servlet-name>Hello</servlet-name>
+    <servlet-name>Job</servlet-name>
     <servlet-class>se.dotnetmentor.jsprit.web.SolutionServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>Hello</servlet-name>
-    <url-pattern>/hello/*</url-pattern>
+    <servlet-name>Job</servlet-name>
+    <url-pattern>/job/*</url-pattern>
   </servlet-mapping>
 </web-app>
