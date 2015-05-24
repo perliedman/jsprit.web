@@ -1,10 +1,13 @@
 package se.dotnetmentor.jsprit.web;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +31,8 @@ import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 import com.sun.org.apache.xml.internal.serializer.Method;
 
 import jsprit.core.problem.VehicleRoutingProblem;
+import jsprit.core.problem.VehicleRoutingProblem.Builder;
+import jsprit.core.problem.io.VrpXMLReader;
 import jsprit.core.problem.io.VrpXMLWriter;
 import jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 
@@ -36,16 +41,63 @@ public class SolutionServlet extends HttpServlet {
 	
 	private Log log = LogFactory.getLog(SolutionServlet.class);
 
+	@Override
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException ,IOException {
+		response.setHeader("Access-Control-Allow-Origin", "*");
+		response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+		response.setHeader("Access-Control-Allow-Headers", "accept, content-type");
+		
+		String sessionId = getJobId(request);
+		
+		if (sessionId == null) {
+			endpointDoesNotExist(response);
+		}
+	};
+	
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+		response.setContentType("application/xml;charset=utf-8");
+		response.setHeader("Access-Control-Allow-Origin", "*");
+		
+		String sessionId = getJobId(request);
+		
+		if (sessionId != null) {
+			File temp = File.createTempFile("jsprit", ".xml");
+			try {
+				long bytesCopied = Files.copy(request.getInputStream(), temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				log.info("Wrote VRP XML to temp file: " + bytesCopied + " bytes.");
+				
+				Builder builder = VehicleRoutingProblem.Builder.newInstance();
+				VrpXMLReader reader = new VrpXMLReader(builder);
+				reader.read(temp.getAbsolutePath());
+				workRepository.setProblem(sessionId, builder.build());
+			} finally {
+				temp.delete();
+			}
+		} else {
+			endpointDoesNotExist(response);
+		}		
+	}
+
+	private void endpointDoesNotExist(HttpServletResponse response) throws IOException,
+			ServletException {
+		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		XMLSerializer serializer = new XMLSerializer(response.getWriter(), new OutputFormat(Method.XML, OutputFormat.Defaults.Encoding, true));
+		try {
+			serializer.serialize(createError("NOT_FOUND", "Specified endpoint does not exist."));
+		} catch (ParserConfigurationException e) {
+			throw new ServletException(e);
+		}
+	}
+
+	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		response.setContentType("application/xml;charset=utf-8");
 		response.setHeader("Access-Control-Allow-Origin", "*");
 
-		Pattern getPattern = Pattern.compile("/([0-9a-zA-Z\\-]+)");
-		String pi = request.getPathInfo();
-		Matcher matcher = getPattern.matcher(pi);
+		String sessionId = getJobId(request);
 		
-		if (matcher.matches()) {
-			String sessionId = matcher.group(1).toLowerCase();
+		if (sessionId != null) {
 			VehicleRoutingProblem problem = workRepository.getProblem(sessionId);
 			Collection<VehicleRoutingProblemSolution> solutions = workRepository.getSolutions(sessionId);
 			
@@ -68,15 +120,20 @@ public class SolutionServlet extends HttpServlet {
 				}
 			}
 		} else {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			XMLSerializer serializer = new XMLSerializer(response.getWriter(), new OutputFormat(Method.XML, OutputFormat.Defaults.Encoding, true));
-			try {
-				serializer.serialize(createError("NOT_FOUND", "Specified endpoint does not exist."));
-			} catch (ParserConfigurationException e) {
-				throw new ServletException(e);
-			}
+			endpointDoesNotExist(response);
 		}		
     }
+
+	private String getJobId(HttpServletRequest request) {
+		Pattern getPattern = Pattern.compile("/([0-9a-zA-Z\\-]+)");
+		String pi = request.getPathInfo();
+		Matcher matcher = getPattern.matcher(pi);
+		if (matcher.matches()) {
+			return matcher.group(1).toLowerCase();
+		} else {
+			return null;
+		}
+	}
 
 	private Element createError(String codeStr, String messageStr) throws ParserConfigurationException {
 		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();

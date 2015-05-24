@@ -20,7 +20,6 @@ import jsprit.core.problem.vehicle.VehicleImpl;
 import jsprit.core.problem.vehicle.VehicleImpl.Builder;
 import jsprit.core.problem.vehicle.VehicleType;
 import jsprit.core.problem.vehicle.VehicleTypeImpl;
-import jsprit.core.problem.vehicle.VehicleTypeImpl.VehicleCostParams;
 
 public class WorkRepository {
 	private Map<String, Work> workItems = new HashMap<String, WorkRepository.Work>();
@@ -43,6 +42,11 @@ public class WorkRepository {
 		
 		return work;
 	}
+
+	public void setProblem(String sessionId, VehicleRoutingProblem problem) {
+		Work work = new Work(problem);
+		workItems.put(sessionId, work);
+	}
 	
 	private Work createWork() throws IOException {
 		synchronized (workItems) {
@@ -50,17 +54,18 @@ public class WorkRepository {
 			 * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
 			 */
 			final int WEIGHT_INDEX = 0;
-			VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(WEIGHT_INDEX, 2);
-			vehicleTypeBuilder.setCostPerTime(1);
+			VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("Car")
+					.addCapacityDimension(WEIGHT_INDEX, 2)
+					.setCostPerTime(1);
 			VehicleType vehicleType = vehicleTypeBuilder.build();
 			
 			/*
 			 * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
 			 */
-			Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
 			Location startLocation = Location.newInstance(11.947364, 57.699676);
-			vehicleBuilder.setStartLocation(startLocation);
-			vehicleBuilder.setType(vehicleType);
+			Builder vehicleBuilder = VehicleImpl.Builder.newInstance("ABC123")
+					.setStartLocation(startLocation)
+					.setType(vehicleType);
 			VehicleImpl vehicle = vehicleBuilder.build();
 			
 			/*
@@ -89,7 +94,6 @@ public class WorkRepository {
 			VehicleRoutingProblem problem = vrpBuilder.build();
 			
 			Work work = new Work(problem);
-			executor.execute(work);
 			
 			return work;
 		}
