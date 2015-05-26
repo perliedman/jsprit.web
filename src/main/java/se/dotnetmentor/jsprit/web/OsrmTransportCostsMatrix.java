@@ -22,7 +22,8 @@ import com.google.gson.JsonParser;
 
 public class OsrmTransportCostsMatrix extends AbstractForwardVehicleRoutingTransportCosts {
 	public static class Builder {
-		private List<Location> locations = new ArrayList<Location>();
+		private List<String> ids = new ArrayList<String>();
+		private List<Coordinate> coordinates = new ArrayList<Coordinate>();
 		private URL osrmDistanceTableUrl;
 		
 		public Builder(URL osrmDistanceTableUrl) {
@@ -34,32 +35,42 @@ public class OsrmTransportCostsMatrix extends AbstractForwardVehicleRoutingTrans
 		}
 		
 		public Builder addLocation(Location location) {
-			locations.add(location);
+			ids.add(location.getId());
+			coordinates.add(location.getCoordinate());
 			return this;
+		}
+
+		public Builder addLocation(String id, Coordinate coordinate) {
+			ids.add(id);
+			coordinates.add(coordinate);
+			return this;
+		}
+		
+		public OsrmTransportCostsMatrix build() throws IOException {
+			return new OsrmTransportCostsMatrix(this);
 		}
 	}
 
 	private int[][] distanceTableMatrix;
 	private Map<String, Integer> locationIndices = new HashMap<String, Integer>();
 	
-	public OsrmTransportCostsMatrix(Builder builder) throws IOException {
-		distanceTableMatrix = getDistanceTableMatrix(builder.osrmDistanceTableUrl, builder.locations);
-		for (int i = 0; i < builder.locations.size(); i++) {
-			locationIndices.put(builder.locations.get(i).getId(), i);
+	private OsrmTransportCostsMatrix(Builder builder) throws IOException {
+		distanceTableMatrix = getDistanceTableMatrix(builder.osrmDistanceTableUrl, builder.coordinates);
+		for (int i = 0; i < builder.coordinates.size(); i++) {
+			locationIndices.put(builder.ids.get(i), i);
 		}
 	}
 	
 	private int[][] getDistanceTableMatrix(URL osrmDistanceTableUrl,
-			List<Location> locations) throws IOException {
+			List<Coordinate> locations) throws IOException {
 		StringBuilder builder = new StringBuilder();
 		boolean first = true;
-		for (Location l : locations) {
+		for (Coordinate coord : locations) {
 			if (!first) {
 				builder.append('&');
 			} else {
 				first = false;
 			}
-			Coordinate coord = l.getCoordinate();
 			builder
 				.append("loc=")
 				.append(coord.getY())
