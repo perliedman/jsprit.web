@@ -1,24 +1,30 @@
 package se.dotnetmentor.jsprit.web;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import jsprit.core.problem.VehicleRoutingProblem;
+import jsprit.core.problem.solution.VehicleRoutingProblemSolution;
+import se.dotnetmentor.jsprit.web.model.Container;
+import se.dotnetmentor.jsprit.web.model.Solution;
 import se.dotnetmentor.jsprit.web.model.Vrp;
 
 import com.google.gson.Gson;
-
-import jsprit.core.problem.VehicleRoutingProblem;
-import jsprit.core.problem.VehicleRoutingProblem.Builder;
 
 public class VrpJsonWriter {
 	public VrpJsonWriter() {
 	}
 	
-	public void write(VehicleRoutingProblem problem, Writer writer) throws IOException {
+	public void write(VehicleRoutingProblem problem, VehicleRoutingProblemSolution[] solutions, Writer writer) throws IOException {
 		Gson gson = new Gson();
 		Vrp vrp = new Vrp(problem);
-		gson.toJson(vrp, writer);
+		List<Solution> sols = new ArrayList<Solution>();
+		for (VehicleRoutingProblemSolution s : solutions) {
+			sols.add(new Solution(s));
+		}
+		
+		gson.toJson(new Container(vrp, sols.toArray(new Solution[0])), writer);
 	}
 }

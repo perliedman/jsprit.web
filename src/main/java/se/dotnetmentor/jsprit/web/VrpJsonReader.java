@@ -23,6 +23,10 @@ public class VrpJsonReader {
 	public VehicleRoutingProblem read(Reader reader) throws IOException {
 		Gson gson = new Gson();
 		Vrp vrp = gson.fromJson(reader, Vrp.class);
-		return vrp.build(builder, osrmDistanceTableUrl);
+		if (vrp != null) {
+			return vrp.build(builder, osrmDistanceTableUrl);
+		} else {
+			throw new IOException("Unable to parse incoming JSON as VRP model");
+		}
 	}
 }

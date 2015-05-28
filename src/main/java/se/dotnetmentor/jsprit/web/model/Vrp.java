@@ -11,6 +11,7 @@ import java.util.Map;
 import se.dotnetmentor.jsprit.web.OsrmTransportCostsMatrix;
 import jsprit.core.problem.VehicleRoutingProblem;
 import jsprit.core.problem.VehicleRoutingProblem.Builder;
+import jsprit.core.problem.VehicleRoutingProblem.FleetSize;
 import jsprit.core.problem.job.Job;
 import jsprit.core.problem.vehicle.VehicleType;
 import jsprit.core.util.Coordinate;
@@ -52,6 +53,7 @@ public class Vrp {
 	public VehicleRoutingProblem build(Builder builder, URL osrmDistanceTableUrl) throws IOException {
 		Map<String, jsprit.core.problem.vehicle.VehicleType> vehicleTypes = 
 				new HashMap<String, jsprit.core.problem.vehicle.VehicleType>();
+				
 		for (se.dotnetmentor.jsprit.web.model.VehicleType type : vehicle_types) {
 			vehicleTypes.put(type.type_id, type.build());
 		}
@@ -73,7 +75,8 @@ public class Vrp {
 			costMatrixBuilder.addLocation(id, locationMap.get(id));
 		}
 		builder.setRoutingCost(costMatrixBuilder.build());
-		
+		builder.setFleetSize(FleetSize.FINITE);
+
 		return builder.build();
 	}
 }

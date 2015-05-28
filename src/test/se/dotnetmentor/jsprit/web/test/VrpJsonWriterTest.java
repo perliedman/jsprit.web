@@ -6,9 +6,12 @@ import java.net.URL;
 
 import se.dotnetmentor.jsprit.web.OsrmTransportCostsMatrix;
 import se.dotnetmentor.jsprit.web.VrpJsonWriter;
+import jsprit.core.algorithm.VehicleRoutingAlgorithm;
+import jsprit.core.algorithm.box.SchrimpfFactory;
 import jsprit.core.problem.Location;
 import jsprit.core.problem.VehicleRoutingProblem;
 import jsprit.core.problem.job.Service;
+import jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import jsprit.core.problem.vehicle.VehicleImpl;
 import jsprit.core.problem.vehicle.VehicleType;
 import jsprit.core.problem.vehicle.VehicleTypeImpl;
@@ -59,10 +62,11 @@ public class VrpJsonWriterTest extends TestCase {
 		vrpBuilder.addJob(service1).addJob(service2).addJob(service3).addJob(service4);
 
 		VehicleRoutingProblem problem = vrpBuilder.build();
+		VehicleRoutingAlgorithm algorithm = new SchrimpfFactory().createAlgorithm(problem);
 
 		VrpJsonWriter vrpWriter = new VrpJsonWriter();
 		StringWriter writer = new StringWriter();
-		vrpWriter.write(problem, writer);
+		vrpWriter.write(problem, algorithm.searchSolutions().toArray(new VehicleRoutingProblemSolution[0]), writer);
 		System.out.println(writer.toString());
 	}
 }
