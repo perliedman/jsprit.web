@@ -21,6 +21,8 @@ class VehicleType {
 
 	public VehicleTypeImpl build() {
 		VehicleTypeImpl.Builder vtBuilder = VehicleTypeImpl.Builder.newInstance(type_id);
+		vtBuilder.setCostPerTime(1);
+		vtBuilder.setCostPerDistance(0);
 		for (int i = 0; i < capacity.length; i++) {
 			vtBuilder.addCapacityDimension(i, capacity[i]);
 		}

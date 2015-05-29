@@ -106,9 +106,10 @@ public class OsrmTransportCostsMatrix extends AbstractForwardVehicleRoutingTrans
 	@Override
 	public double getTransportCost(Location from, Location to,
 			double departureTime, Driver driver, Vehicle vehicle) {
-		if(vehicle == null) return getTransportTime(from, to, departureTime, driver, vehicle);
+		double transportTime = getTransportTime(from, to, departureTime, driver, vehicle);
+		if(vehicle == null) return transportTime;
 		VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
-		return costParams.perTimeUnit*getTransportTime(from, to, departureTime, driver, vehicle);
+		return costParams.perTimeUnit*transportTime;
 	}
 
 }
